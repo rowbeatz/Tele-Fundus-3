@@ -1,0 +1,5 @@
+{
+  "name": "Tele-Fundus",
+  "description": "遠隔眼底画像診断支援プラットフォーム",
+  "requestFramePermissions": []
+}

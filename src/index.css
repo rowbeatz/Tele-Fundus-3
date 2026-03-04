@@ -1,0 +1,52 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  
+  --color-medical-primary: #0ea5e9;
+  --color-medical-secondary: #0d9488;
+  --color-medical-bg: #f8fafc;
+  --color-medical-surface: #ffffff;
+  --color-medical-border: #e2e8f0;
+  --color-medical-text: #0f172a;
+  --color-medical-text-muted: #64748b;
+}
+
+@layer base {
+  :root.dark {
+    --color-medical-bg: #020617;
+    --color-medical-surface: #0f172a;
+    --color-medical-border: #1e293b;
+    --color-medical-text: #f8fafc;
+    --color-medical-text-muted: #94a3b8;
+  }
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-medical-bg);
+  color: var(--color-medical-text);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.medical-shadow {
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.05), 0 2px 10px -2px rgba(0, 0, 0, 0.02);
+}
+
+.medical-shadow-lg {
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08), 0 4px 15px -4px rgba(0, 0, 0, 0.03);
+}
