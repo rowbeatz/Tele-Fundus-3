@@ -83,8 +83,8 @@ export default function Layout() {
           })}
         </nav>
 
-        <div className="p-6 border-t border-medical-border bg-slate-50/50">
-          <div className="flex items-center gap-4 p-3 mb-4 bg-white rounded-2xl border border-medical-border shadow-sm">
+        <div className="p-6 border-t border-medical-border bg-medical-surface">
+          <div className="flex items-center gap-4 p-3 mb-4 bg-medical-bg rounded-2xl border border-medical-border shadow-sm">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-medical-primary to-cyan-400 flex items-center justify-center text-white font-bold text-sm shadow-md">
               AD
             </div>
@@ -97,7 +97,7 @@ export default function Layout() {
               </p>
             </div>
           </div>
-          <button className="flex items-center gap-3 px-4 py-3 w-full rounded-2xl text-sm font-bold text-medical-text-muted hover:bg-red-50 hover:text-red-500 transition-all duration-300">
+          <button className="flex items-center gap-3 px-4 py-3 w-full rounded-2xl text-sm font-bold text-medical-text-muted hover:bg-red-500/10 hover:text-red-500 transition-all duration-300">
             <LogOut size={18} strokeWidth={2.5} />
             {t('nav.logout')}
           </button>
@@ -133,12 +133,12 @@ export default function Layout() {
           </button>
 
           {/* Language Toggle */}
-          <div className="flex items-center bg-slate-100 rounded-lg p-1">
+          <div className="flex items-center bg-medical-bg rounded-lg p-1">
             <button
               onClick={() => setLanguage('en')}
               className={clsx(
                 "px-3 py-1 text-xs font-bold rounded-md transition-all",
-                language === 'en' ? "bg-white text-medical-primary shadow-sm" : "text-medical-text-muted hover:text-medical-text"
+                language === 'en' ? "bg-medical-surface text-medical-primary shadow-sm" : "text-medical-text-muted hover:text-medical-text"
               )}
             >
               EN
@@ -147,7 +147,7 @@ export default function Layout() {
               onClick={() => setLanguage('ja')}
               className={clsx(
                 "px-3 py-1 text-xs font-bold rounded-md transition-all",
-                language === 'ja' ? "bg-white text-medical-primary shadow-sm" : "text-medical-text-muted hover:text-medical-text"
+                language === 'ja' ? "bg-medical-surface text-medical-primary shadow-sm" : "text-medical-text-muted hover:text-medical-text"
               )}
             >
               JP

@@ -12,25 +12,32 @@ import Registration from "./pages/Registration";
 import Viewer from "./pages/Viewer";
 import Billing from "./pages/Billing";
 import Queue from "./pages/Queue";
+import Reviews from "./pages/Reviews";
 import Settings from "./pages/Settings";
+import ImageOrganizer from "./pages/ImageOrganizer";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <I18nProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Layout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="register" element={<Registration />} />
-              <Route path="queue" element={<Queue />} />
-              <Route path="billing" element={<Billing />} />
-              <Route path="settings" element={<Settings />} />
-            </Route>
-            <Route path="/viewer/:id" element={<Viewer />} />
-          </Routes>
-        </BrowserRouter>
-      </I18nProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <I18nProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Layout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="register" element={<Registration />} />
+                <Route path="queue" element={<Queue />} />
+                <Route path="reviews" element={<Reviews />} />
+                <Route path="billing" element={<Billing />} />
+                <Route path="organizer" element={<ImageOrganizer />} />
+                <Route path="settings" element={<Settings />} />
+              </Route>
+              <Route path="/viewer/:id" element={<Viewer />} />
+            </Routes>
+          </BrowserRouter>
+        </I18nProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }

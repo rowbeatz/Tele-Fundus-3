@@ -6,22 +6,32 @@
   --font-display: "Outfit", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   
-  --color-medical-primary: #0ea5e9;
-  --color-medical-secondary: #0d9488;
-  --color-medical-bg: #f8fafc;
-  --color-medical-surface: #ffffff;
-  --color-medical-border: #e2e8f0;
-  --color-medical-text: #0f172a;
-  --color-medical-text-muted: #64748b;
+  --color-medical-primary: #3B82F6;
+  --color-medical-secondary: #10B981;
+  --color-medical-bg: #F8FAFC;
+  --color-medical-surface: #FFFFFF;
+  --color-medical-border: #E2E8F0;
+  --color-medical-text: #0F172A;
+  --color-medical-text-muted: #64748B;
+  --color-medical-success: #10B981;
+  --color-medical-warning: #F59E0B;
+  --color-medical-error: #EF4444;
+  --color-medical-viewer-bg: #F8FAFC;
 }
 
 @layer base {
   :root.dark {
-    --color-medical-bg: #020617;
-    --color-medical-surface: #0f172a;
-    --color-medical-border: #1e293b;
-    --color-medical-text: #f8fafc;
-    --color-medical-text-muted: #94a3b8;
+    --color-medical-primary: #3B82F6;
+    --color-medical-secondary: #10B981;
+    --color-medical-bg: #0F1117;
+    --color-medical-surface: #171B22;
+    --color-medical-border: #2A3440;
+    --color-medical-text: #E5E7EB;
+    --color-medical-text-muted: #9CA3AF;
+    --color-medical-success: #10B981;
+    --color-medical-warning: #F59E0B;
+    --color-medical-error: #EF4444;
+    --color-medical-viewer-bg: #0F1117;
   }
 }
 

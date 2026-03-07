@@ -27,23 +27,40 @@ export default function Settings() {
   ]);
 
   useEffect(() => {
-    // Mock fetching users
-    setTimeout(() => {
-      setUsers([
-        { id: '1', name: 'Admin User', email: 'admin@example.com', role: 'admin' },
-        { id: '2', name: 'Dr. Smith', email: 'smith@example.com', role: 'physician' },
-        { id: '3', name: 'Operator A', email: 'op.a@example.com', role: 'operator' },
-      ]);
-      setLoading(false);
-    }, 500);
+    fetch("/api/physicians")
+      .then((res) => res.json())
+      .then((data) => {
+        setUsers(data.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          email: `${p.id}@example.com`, // Mock email
+          role: p.rank === '指導医' ? 'admin' : p.rank === '専門医' ? 'physician' : 'operator'
+        })));
+        setLoading(false);
+      });
   }, []);
 
-  const handleAddUser = (e: React.FormEvent) => {
+  const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    const id = Math.random().toString(36).substr(2, 9);
-    setUsers([...users, { ...newUser, id }]);
-    setShowAddUser(false);
-    setNewUser({ name: '', email: '', role: 'operator' });
+    try {
+      const res = await fetch("/api/physicians", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newUser.name,
+          rank: newUser.role === 'admin' ? '指導医' : newUser.role === 'physician' ? '専門医' : '一般医',
+          base_rate: 500
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUsers([...users, { ...newUser, id: data.id }]);
+        setShowAddUser(false);
+        setNewUser({ name: '', email: '', role: 'operator' });
+      }
+    } catch (error) {
+      console.error("Failed to add user", error);
+    }
   };
 
   return (
@@ -53,48 +70,48 @@ export default function Settings() {
       className="max-w-5xl mx-auto space-y-8"
     >
       <div>
-        <h1 className="text-3xl font-bold text-[#141414] tracking-tight">{t('settings.title')}</h1>
-        <p className="text-[#141414]/60 mt-1 text-sm">{t('settings.subtitle')}</p>
+        <h1 className="text-3xl font-bold text-medical-text tracking-tight">{t('settings.title')}</h1>
+        <p className="text-medical-text-muted mt-1 text-sm">{t('settings.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: General & Security Settings */}
         <div className="space-y-6">
-          <div className="bg-white rounded-2xl border border-[#141414]/10 p-6 shadow-sm">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-[#141414]/70 flex items-center gap-2 mb-4">
+          <div className="bg-medical-surface rounded-2xl border border-medical-border p-6 shadow-sm">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-medical-text-muted flex items-center gap-2 mb-4">
               <Globe size={16} /> Language / 言語
             </h2>
             <div className="flex gap-4">
               <button 
                 onClick={() => setLanguage('en')}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${language === 'en' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-[#141414]/60 hover:bg-slate-200'}`}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${language === 'en' ? 'bg-medical-primary text-white' : 'bg-medical-bg text-medical-text-muted hover:bg-medical-surface'}`}
               >
                 English
               </button>
               <button 
                 onClick={() => setLanguage('ja')}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${language === 'ja' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-[#141414]/60 hover:bg-slate-200'}`}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${language === 'ja' ? 'bg-medical-primary text-white' : 'bg-medical-bg text-medical-text-muted hover:bg-medical-surface'}`}
               >
                 日本語
               </button>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-[#141414]/10 p-6 shadow-sm">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-[#141414]/70 flex items-center gap-2 mb-4">
+          <div className="bg-medical-surface rounded-2xl border border-medical-border p-6 shadow-sm">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-medical-text-muted flex items-center gap-2 mb-4">
               <Lock size={16} /> Security / セキュリティ
             </h2>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                <span className="text-xs font-semibold text-slate-600">Two-Factor Auth (2FA)</span>
-                <div className="w-10 h-5 bg-slate-200 rounded-full relative cursor-pointer">
-                  <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full shadow-sm" />
+              <div className="flex items-center justify-between p-3 bg-medical-bg rounded-xl">
+                <span className="text-xs font-semibold text-medical-text-muted">Two-Factor Auth (2FA)</span>
+                <div className="w-10 h-5 bg-medical-border rounded-full relative cursor-pointer">
+                  <div className="absolute left-1 top-1 w-3 h-3 bg-medical-surface rounded-full shadow-sm" />
                 </div>
               </div>
-              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                <span className="text-xs font-semibold text-slate-600">Session Timeout (30m)</span>
-                <div className="w-10 h-5 bg-indigo-600 rounded-full relative cursor-pointer">
-                  <div className="absolute right-1 top-1 w-3 h-3 bg-white rounded-full shadow-sm" />
+              <div className="flex items-center justify-between p-3 bg-medical-bg rounded-xl">
+                <span className="text-xs font-semibold text-medical-text-muted">Session Timeout (30m)</span>
+                <div className="w-10 h-5 bg-medical-primary rounded-full relative cursor-pointer">
+                  <div className="absolute right-1 top-1 w-3 h-3 bg-medical-surface rounded-full shadow-sm" />
                 </div>
               </div>
             </div>
@@ -104,42 +121,42 @@ export default function Settings() {
         {/* Right Column: Management Sections */}
         <div className="lg:col-span-2 space-y-8">
           {/* User Management */}
-          <div className="bg-white rounded-2xl border border-[#141414]/10 shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-[#141414]/10 flex justify-between items-center bg-slate-50/50">
-              <h2 className="text-sm font-bold uppercase tracking-wider text-[#141414]/70 flex items-center gap-2">
+          <div className="bg-medical-surface rounded-2xl border border-medical-border shadow-sm overflow-hidden">
+            <div className="p-5 border-b border-medical-border flex justify-between items-center bg-medical-bg/50">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-medical-text-muted flex items-center gap-2">
                 <Users size={16} /> {t('settings.users')}
               </h2>
               <button 
                 onClick={() => setShowAddUser(!showAddUser)}
-                className="text-xs font-bold uppercase tracking-wider bg-[#141414] text-white px-3 py-1.5 rounded-lg flex items-center gap-1 hover:bg-black transition-colors"
+                className="text-xs font-bold uppercase tracking-wider bg-medical-text text-medical-surface px-3 py-1.5 rounded-lg flex items-center gap-1 hover:bg-medical-text/90 transition-colors"
               >
                 <Plus size={14} /> {t('settings.add_user')}
               </button>
             </div>
 
             {showAddUser && (
-              <div className="p-5 border-b border-[#141414]/10 bg-indigo-50/50">
+              <div className="p-5 border-b border-medical-border bg-medical-primary/5">
                 <form onSubmit={handleAddUser} className="flex items-end gap-4">
                   <div className="flex-1 space-y-1">
-                    <label className="text-xs font-semibold text-[#141414]/60 uppercase tracking-wider">{t('table.name')}</label>
+                    <label className="text-xs font-semibold text-medical-text-muted uppercase tracking-wider">{t('table.name')}</label>
                     <input 
                       type="text" required
-                      className="w-full px-3 py-2 bg-white border border-[#141414]/10 rounded-lg text-sm focus:outline-none focus:border-indigo-500"
+                      className="w-full px-3 py-2 bg-medical-surface border border-medical-border rounded-lg text-sm focus:outline-none focus:border-medical-primary"
                       value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})}
                     />
                   </div>
                   <div className="flex-1 space-y-1">
-                    <label className="text-xs font-semibold text-[#141414]/60 uppercase tracking-wider">Email</label>
+                    <label className="text-xs font-semibold text-medical-text-muted uppercase tracking-wider">Email</label>
                     <input 
                       type="email" required
-                      className="w-full px-3 py-2 bg-white border border-[#141414]/10 rounded-lg text-sm focus:outline-none focus:border-indigo-500"
+                      className="w-full px-3 py-2 bg-medical-surface border border-medical-border rounded-lg text-sm focus:outline-none focus:border-medical-primary"
                       value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})}
                     />
                   </div>
                   <div className="w-32 space-y-1">
-                    <label className="text-xs font-semibold text-[#141414]/60 uppercase tracking-wider">{t('settings.role')}</label>
+                    <label className="text-xs font-semibold text-medical-text-muted uppercase tracking-wider">{t('settings.role')}</label>
                     <select 
-                      className="w-full px-3 py-2 bg-white border border-[#141414]/10 rounded-lg text-sm focus:outline-none focus:border-indigo-500"
+                      className="w-full px-3 py-2 bg-medical-surface border border-medical-border rounded-lg text-sm focus:outline-none focus:border-medical-primary"
                       value={newUser.role} onChange={e => setNewUser({...newUser, role: e.target.value})}
                     >
                       <option value="admin">Admin</option>
@@ -147,7 +164,7 @@ export default function Settings() {
                       <option value="operator">Operator</option>
                     </select>
                   </div>
-                  <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
+                  <button type="submit" className="bg-medical-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-medical-primary/90 transition-colors">
                     <Save size={16} />
                   </button>
                 </form>
@@ -156,26 +173,26 @@ export default function Settings() {
 
             <div className="p-0">
               {loading ? (
-                <div className="p-8 text-center text-[#141414]/40">Loading...</div>
+                <div className="p-8 text-center text-medical-text-muted">Loading...</div>
               ) : (
                 <table className="w-full text-left text-sm">
-                  <thead className="bg-slate-50 text-[#141414]/50 font-semibold text-xs uppercase tracking-wider border-b border-[#141414]/10">
+                  <thead className="bg-medical-bg text-medical-text-muted font-semibold text-xs uppercase tracking-wider border-b border-medical-border">
                     <tr>
                       <th className="px-5 py-3">{t('table.name')}</th>
                       <th className="px-5 py-3">Email</th>
                       <th className="px-5 py-3">{t('settings.role')}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#141414]/5">
+                  <tbody className="divide-y divide-medical-border">
                     {users.map(user => (
-                      <tr key={user.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-5 py-3 font-medium text-[#141414]">{user.name}</td>
-                        <td className="px-5 py-3 text-[#141414]/60">{user.email}</td>
+                      <tr key={user.id} className="hover:bg-medical-bg transition-colors">
+                        <td className="px-5 py-3 font-medium text-medical-text">{user.name}</td>
+                        <td className="px-5 py-3 text-medical-text-muted">{user.email}</td>
                         <td className="px-5 py-3">
                           <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${
-                            user.role === 'admin' ? 'bg-purple-100 text-purple-700' :
-                            user.role === 'physician' ? 'bg-emerald-100 text-emerald-700' :
-                            'bg-blue-100 text-blue-700'
+                            user.role === 'admin' ? 'bg-medical-primary/10 text-medical-primary' :
+                            user.role === 'physician' ? 'bg-medical-secondary/10 text-medical-secondary' :
+                            'bg-medical-border text-medical-text-muted'
                           }`}>
                             {user.role}
                           </span>

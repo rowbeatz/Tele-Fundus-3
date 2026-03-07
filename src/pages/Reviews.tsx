@@ -8,7 +8,7 @@ import { ScreeningData } from "../types";
 
 type SortOption = "date_desc" | "date_asc" | "urgency";
 
-export default function Queue() {
+export default function Reviews() {
   const { t } = useTranslation();
   const [screenings, setScreenings] = useState<ScreeningData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -19,9 +19,9 @@ export default function Queue() {
     fetch("/api/screenings")
       .then((res) => res.json())
       .then((data) => {
-        // Filter only assigned for the queue
+        // Filter only reading_completed for the QC review queue
         const queue = data.filter(
-          (s: ScreeningData) => s.status === "assigned",
+          (s: ScreeningData) => s.status === "reading_completed",
         );
         setScreenings(queue);
         setLoading(false);
@@ -69,10 +69,10 @@ export default function Queue() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <h1 className="text-4xl font-bold text-medical-text tracking-tight font-display">
-            {t('queue.title')}
+            {t('reviews.title')}
           </h1>
           <p className="text-medical-text-muted mt-2 text-base font-medium">
-            {t('queue.subtitle')}
+            {t('reviews.subtitle')}
           </p>
         </div>
 
@@ -109,7 +109,7 @@ export default function Queue() {
             <div className="flex flex-col items-center justify-center gap-4">
               <div className="w-8 h-8 border-4 border-medical-primary border-t-transparent rounded-full animate-spin"></div>
               <span className="text-xs uppercase tracking-[0.2em] font-bold">
-                Loading Queue...
+                Loading Reviews...
               </span>
             </div>
           </div>
@@ -124,7 +124,7 @@ export default function Queue() {
             </div>
             <h3 className="text-2xl font-bold text-medical-text font-display mb-2">All Caught Up!</h3>
             <p className="text-medical-text-muted font-medium">
-              {searchTerm ? "No cases match your search criteria." : "There are no cases assigned to you at the moment."}
+              {searchTerm ? "No cases match your search criteria." : "There are no cases pending QC review at the moment."}
             </p>
           </motion.div>
         ) : (
@@ -149,9 +149,9 @@ export default function Queue() {
                 <div className="flex items-start sm:items-center gap-6 pl-2">
                   <div className={clsx(
                     "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 duration-300",
-                    s.urgency_flag === 1 ? "bg-medical-error/10 text-medical-error" : "bg-medical-primary/10 text-medical-primary"
+                    s.urgency_flag === 1 ? "bg-medical-error/10 text-medical-error" : "bg-medical-warning/10 text-medical-warning"
                   )}>
-                    {s.urgency_flag === 1 ? <AlertCircle size={24} /> : <Eye size={24} />}
+                    {s.urgency_flag === 1 ? <AlertCircle size={24} /> : <FileCheck size={24} />}
                   </div>
                   <div>
                     <div className="flex flex-wrap items-center gap-3 mb-1.5">
@@ -180,8 +180,8 @@ export default function Queue() {
                     <div className="text-[10px] font-bold text-medical-text-muted uppercase tracking-[0.2em] mb-1.5">
                       {t('table.status')}
                     </div>
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-medical-primary/10 text-medical-primary border border-medical-primary/20">
-                      <Activity size={14} /> {t('status.in_reading')}
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-medical-warning/10 text-medical-warning border border-medical-warning/20">
+                      <FileCheck size={14} /> {t('status.qc_review')}
                     </span>
                   </div>
                   <Link

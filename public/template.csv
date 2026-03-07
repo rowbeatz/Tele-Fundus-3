@@ -1,0 +1,4 @@
+examinee_number,name,gender,birth_date,screening_date,urgency_flag,chief_complaint,organization_id,blood_pressure_systolic,blood_pressure_diastolic,has_diabetes,has_hypertension
+患者ID,氏名,性別(male/female),生年月日(YYYY-MM-DD),検診日(YYYY-MM-DD),至急(0/1),主訴,組織ID,収縮期血圧,拡張期血圧,糖尿病(0/1),高血圧(0/1)
+PT-0001,山田太郎,male,1980-01-01,2026-03-07,0,特になし,org-1,120,80,0,0
+PT-0002,佐藤花子,female,1990-05-15,2026-03-07,1,かすみ目,org-1,130,85,1,1
