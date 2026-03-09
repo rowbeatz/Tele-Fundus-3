@@ -1,20 +1,100 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Telefundus System
 
-# Run and deploy your AI Studio app
+Telefundus Systemは、眼底検査の症例管理、医師による読影、QC（品質管理）、および請求管理を一元化するフルスタックWebアプリケーションです。
 
-This contains everything you need to run your app locally.
+## 技術スタック
 
-View your app in AI Studio: https://ai.studio/apps/f208564d-fc46-4af6-8534-94102462298c
+本システムは以下の技術で構成されています。
 
-## Run Locally
+### フロントエンド
+- **Framework**: React 19 (Vite)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Animations**: Framer Motion
+- **Icons**: Lucide React
+- **Data Visualization**: Recharts
+- **Components/UI**: React Dropzone, React Router
 
-**Prerequisites:**  Node.js
+### バックエンド
+- **Runtime**: Node.js
+- **Framework**: Express
+- **Database**: SQLite (better-sqlite3)
+- **File Handling**: Multer (アップロード), csv-parse (CSV処理), adm-zip (ZIP処理)
 
+## ディレクトリ構造
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+```text
+/
+├── server.ts           # サーバーエントリーポイント (Express + Vite)
+├── server/             # バックエンドロジック
+│   ├── routes.ts       # APIルーティング
+│   ├── screeningController.ts # 症例関連コントローラー
+│   ├── screeningService.ts    # 症例関連ビジネスロジック
+│   └── ...             # 他コントローラー/サービス
+├── src/                # フロントエンドソース
+│   ├── components/     # 再利用可能なUIコンポーネント
+│   ├── pages/          # ページコンポーネント
+│   ├── services/       # APIクライアント
+│   └── ...
+├── public/             # 静的ファイル
+└── telefundus.db       # SQLiteデータベースファイル
+```
+
+## データベース設計
+
+SQLiteを使用しており、主に以下のテーブルで構成されています。
+
+- **organizations**: 健診機関情報
+- **physicians**: 医師情報
+- **examinees**: 被検者情報
+- **screenings**: 検査症例情報 (メインテーブル)
+- **screening_images**: 検査画像URL
+- **reading_reviews**: 読影レビュー結果
+- **audit_logs**: 操作ログ
+
+## API エンドポイント
+
+主要なAPIは `/api` 以下に定義されています。
+
+- `GET /api/stats`: ダッシュボード用統計データ
+- `GET /api/screenings`: 症例一覧取得
+- `POST /api/screenings`: 症例登録
+- `POST /api/screenings/batch`: 症例一括登録 (CSV + ZIP)
+- `PATCH /api/screenings/:id`: 症例更新
+- `GET /api/organizations`: 健診機関一覧
+
+## セットアップと起動
+
+### 前提条件
+- Node.js (v22以上推奨)
+- npm
+
+### 手順
+
+1. **依存関係のインストール**
+   ```bash
+   npm install
+   ```
+
+2. **環境変数の設定**
+   `.env.example` を参考に `.env` ファイルを作成してください。
+
+3. **開発サーバーの起動**
+   ```bash
+   npm run dev
+   ```
+   サーバーは `http://localhost:3000` で起動します。
+
+4. **ビルド**
+   ```bash
+   npm run build
+   ```
+
+## 開発ガイド
+
+### 新規機能の追加
+1. **バックエンド**: `server/` 配下にコントローラーとサービスを追加し、`server/routes.ts` でルーティングを定義してください。
+2. **フロントエンド**: `src/pages/` または `src/components/` にコンポーネントを追加し、`src/services/` を通じてAPIを呼び出してください。
+
+### データベースの変更
+`server.ts` 内の `db.exec` にあるテーブル定義を更新してください。既存のデータベースファイル (`telefundus.db`) を削除すると、再起動時に初期データが再シードされます。
