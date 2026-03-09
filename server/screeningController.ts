@@ -11,7 +11,30 @@ export class ScreeningController {
   }
 
   getAll = (req: Request, res: Response) => {
-    const screenings = this.service.getAllScreenings();
+    const querySchema = z.object({
+      status: z
+        .enum([
+          "registered",
+          "submitted",
+          "assigned",
+          "reading_completed",
+          "completed",
+          "confirmed",
+          "rejected",
+          "pending",
+        ])
+        .optional(),
+      search: z.string().trim().min(1).max(100).optional(),
+      limit: z.coerce.number().int().min(1).max(500).optional(),
+      offset: z.coerce.number().int().min(0).optional(),
+    });
+
+    const parsed = querySchema.safeParse(req.query);
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.issues });
+    }
+
+    const screenings = this.service.getAllScreenings(parsed.data);
     res.json(screenings);
   };
 

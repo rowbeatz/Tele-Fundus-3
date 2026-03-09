@@ -106,19 +106,50 @@ export class ScreeningService {
     return count;
   }
 
-  getAllScreenings() {
-    return this.db
-      .prepare(
-        `
+  getAllScreenings(filters?: {
+    status?: string;
+    search?: string;
+    limit?: number;
+    offset?: number;
+  }) {
+    let query = `
       SELECT s.*, e.name as patient_name, e.examinee_number, o.name as organization_name, ph.name as physician_name
       FROM screenings s
       JOIN examinees e ON s.examinee_id = e.id
       JOIN organizations o ON s.organization_id = o.id
       LEFT JOIN physicians ph ON s.physician_id = ph.id
-      ORDER BY s.created_at DESC
-    `,
-      )
-      .all();
+    `;
+    const conditions: string[] = [];
+    const params: Array<string | number> = [];
+
+    if (filters?.status) {
+      conditions.push("s.status = ?");
+      params.push(filters.status);
+    }
+
+    if (filters?.search) {
+      conditions.push("(LOWER(e.name) LIKE ? OR LOWER(e.examinee_number) LIKE ? OR LOWER(o.name) LIKE ?)");
+      const searchValue = `%${filters.search.toLowerCase()}%`;
+      params.push(searchValue, searchValue, searchValue);
+    }
+
+    if (conditions.length > 0) {
+      query += ` WHERE ${conditions.join(" AND ")}`;
+    }
+
+    query += " ORDER BY s.created_at DESC";
+
+    if (filters?.limit !== undefined) {
+      query += " LIMIT ?";
+      params.push(filters.limit);
+    }
+
+    if (filters?.offset !== undefined) {
+      query += " OFFSET ?";
+      params.push(filters.offset);
+    }
+
+    return this.db.prepare(query).all(...params);
   }
 
   getScreeningById(id: string) {
