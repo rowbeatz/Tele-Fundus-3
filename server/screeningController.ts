@@ -48,4 +48,22 @@ export class ScreeningController {
     }
     res.json({ success: true });
   };
+
+  batchUpload = async (req: Request, res: Response) => {
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+    const csvFile = files["csv"]?.[0];
+    const zipFile = files["zip"]?.[0];
+
+    if (!csvFile) {
+      return res.status(400).json({ error: "CSV file is required" });
+    }
+
+    try {
+      const count = await this.service.processBatch(csvFile.path, zipFile?.path);
+      res.json({ success: true, count });
+    } catch (error) {
+      console.error("Batch processing error:", error);
+      res.status(500).json({ error: error instanceof Error ? error.message : "Internal server error" });
+    }
+  };
 }

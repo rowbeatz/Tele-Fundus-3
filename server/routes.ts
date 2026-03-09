@@ -1,10 +1,13 @@
 import { Router } from "express";
 import { Database } from "better-sqlite3";
 import { z } from "zod";
+import multer from "multer";
 import { ScreeningController } from "./screeningController";
 import { QcReviewController } from "./qcReviewController";
 import { MessageController } from "./messageController";
 import { BillingController } from "./billingController";
+
+const upload = multer({ dest: "uploads/" });
 
 export function createApiRouter(db: Database) {
   const router = Router();
@@ -143,6 +146,13 @@ export function createApiRouter(db: Database) {
 
     res.json({ success: true, id: screeningId });
   });
+
+  // Batch Upload
+  router.post(
+    "/screenings/batch",
+    upload.fields([{ name: "csv", maxCount: 1 }, { name: "zip", maxCount: 1 }]),
+    screeningController.batchUpload
+  );
 
   // 4. Get Single Screening (Viewer)
   router.get("/screenings/:id", screeningController.getById);

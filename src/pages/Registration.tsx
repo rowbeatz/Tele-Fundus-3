@@ -38,6 +38,8 @@ export default function Registration() {
     is_batch: false,
     right_eye_image: null as File | null,
     left_eye_image: null as File | null,
+    batch_csv: null as File | null,
+    batch_zip: null as File | null,
   });
 
   const [organizations, setOrganizations] = useState<Organization[]>([]);
@@ -62,8 +64,51 @@ export default function Registration() {
     setFormData((prev) => ({ ...prev, left_eye_image: acceptedFiles[0] }));
   }, []);
 
+  const onDropBatchCsv = useCallback((acceptedFiles: File[]) => {
+    setFormData((prev) => ({ ...prev, batch_csv: acceptedFiles[0] }));
+  }, []);
+
+  const onDropBatchZip = useCallback((acceptedFiles: File[]) => {
+    setFormData((prev) => ({ ...prev, batch_zip: acceptedFiles[0] }));
+  }, []);
+
   const { getRootProps: getRootPropsRight, getInputProps: getInputPropsRight } = useDropzone({ onDrop: onDropRight, accept: {'image/*': []} } as any);
   const { getRootProps: getRootPropsLeft, getInputProps: getInputPropsLeft } = useDropzone({ onDrop: onDropLeft, accept: {'image/*': []} } as any);
+  const { getRootProps: getRootPropsBatchCsv, getInputProps: getInputPropsBatchCsv } = useDropzone({ onDrop: onDropBatchCsv, accept: {'text/csv': ['.csv']} } as any);
+  const { getRootProps: getRootPropsBatchZip, getInputProps: getInputPropsBatchZip } = useDropzone({ onDrop: onDropBatchZip, accept: {'application/zip': ['.zip']} } as any);
+
+  const handleBatchSubmit = async () => {
+    if (!formData.batch_csv) {
+      alert("Please upload a CSV file.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    const body = new FormData();
+    body.append("csv", formData.batch_csv);
+    if (formData.batch_zip) {
+      body.append("zip", formData.batch_zip);
+    }
+
+    try {
+      const res = await fetch("/api/screenings/batch", {
+        method: "POST",
+        body,
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(`Successfully processed ${data.count} cases.`);
+        navigate("/");
+      } else {
+        alert("Batch processing failed: " + data.error);
+      }
+    } catch (error) {
+      console.error("Batch registration failed", error);
+      alert("Batch registration failed.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,39 +185,49 @@ export default function Registration() {
           <div className="w-24 h-24 bg-medical-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
             <FileText size={40} className="text-medical-primary" />
           </div>
-          <h3 className="text-2xl font-bold text-medical-text font-display mb-4">Upload CSV Data</h3>
+          <h3 className="text-2xl font-bold text-medical-text font-display mb-4">Batch Registration</h3>
           <p className="text-medical-text-muted font-medium mb-8 max-w-md mx-auto">
-            Upload a CSV file containing patient data and image references for bulk registration.
+            Upload a CSV file and an optional ZIP file of images for bulk registration.
           </p>
           
-          <div className="max-w-xl mx-auto border-2 border-dashed border-medical-border rounded-3xl p-12 hover:bg-medical-bg transition-all cursor-pointer group">
-            <Upload size={32} className="text-medical-text-muted mx-auto mb-4 group-hover:text-medical-primary transition-colors" />
-            <p className="text-sm font-bold text-medical-text uppercase tracking-widest mb-2">
-              Drag & Drop CSV File
-            </p>
-            <p className="text-xs text-medical-text-muted">
-              or click to browse
-            </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            <div {...getRootPropsBatchCsv()} className={clsx("border-2 border-dashed border-medical-border rounded-3xl p-8 hover:bg-medical-bg transition-all cursor-pointer group", formData.batch_csv && "border-medical-primary bg-medical-primary/5")}>
+              <input {...getInputPropsBatchCsv()} />
+              <FileText size={32} className={clsx("mx-auto mb-4 transition-colors", formData.batch_csv ? "text-medical-primary" : "text-medical-text-muted group-hover:text-medical-primary")} />
+              <p className="text-xs font-bold text-medical-text uppercase tracking-widest mb-1">
+                {formData.batch_csv ? formData.batch_csv.name : "Drop CSV File"}
+              </p>
+              <p className="text-[10px] text-medical-text-muted">Patient Data</p>
+            </div>
+
+            <div {...getRootPropsBatchZip()} className={clsx("border-2 border-dashed border-medical-border rounded-3xl p-8 hover:bg-medical-bg transition-all cursor-pointer group", formData.batch_zip && "border-medical-primary bg-medical-primary/5")}>
+              <input {...getInputPropsBatchZip()} />
+              <FileImage size={32} className={clsx("mx-auto mb-4 transition-colors", formData.batch_zip ? "text-medical-primary" : "text-medical-text-muted group-hover:text-medical-primary")} />
+              <p className="text-xs font-bold text-medical-text uppercase tracking-widest mb-1">
+                {formData.batch_zip ? formData.batch_zip.name : "Drop ZIP File"}
+              </p>
+              <p className="text-[10px] text-medical-text-muted">Images (Optional)</p>
+            </div>
           </div>
 
-          <div className="mt-8 flex justify-center gap-4">
+          <div className="mt-12 flex justify-center gap-4">
             <button 
               type="button"
               onClick={() => {
-                const link = document.createElement('a');
-                link.href = '/template.csv';
-                link.download = 'template.csv';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                window.location.href = '/download-template';
               }}
               className="px-8 py-4 bg-medical-bg border border-medical-border text-medical-text-muted hover:text-medical-primary rounded-2xl text-xs font-bold uppercase tracking-widest transition-all shadow-sm"
             >
               Download Template
             </button>
-            <button className="px-8 py-4 bg-medical-primary hover:bg-medical-primary/90 text-white rounded-2xl text-xs font-bold uppercase tracking-widest transition-all shadow-lg shadow-medical-primary/20 flex items-center gap-2">
+            <button 
+              type="button"
+              disabled={isSubmitting || !formData.batch_csv}
+              onClick={handleBatchSubmit}
+              className="px-8 py-4 bg-medical-primary hover:bg-medical-primary/90 disabled:bg-medical-border disabled:text-medical-text-muted text-white rounded-2xl text-xs font-bold uppercase tracking-widest transition-all shadow-lg shadow-medical-primary/20 flex items-center gap-2"
+            >
               <CheckCircle2 size={16} />
-              Process Batch
+              {isSubmitting ? "Processing..." : "Process Batch"}
             </button>
           </div>
         </motion.div>

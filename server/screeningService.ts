@@ -1,10 +1,109 @@
 import { Database } from "better-sqlite3";
+import fs from "fs";
+import { parse } from "csv-parse/sync";
+import AdmZip from "adm-zip";
+import path from "path";
 
 export class ScreeningService {
   private db: Database;
 
   constructor(db: Database) {
     this.db = db;
+  }
+
+  // ... existing methods ...
+
+  async processBatch(csvPath: string, zipPath?: string) {
+    const csvContent = fs.readFileSync(csvPath, "utf-8");
+    const records = parse(csvContent, {
+      columns: true,
+      skip_empty_lines: true,
+      from_line: 1, // Skip the description line if it exists
+    }) as any[];
+
+    // If the first record looks like the description line (contains "患者ID"), skip it
+    const filteredRecords = records[0]?.examinee_number === "患者ID" ? records.slice(1) : records;
+
+    let zip: AdmZip | null = null;
+    if (zipPath) {
+      zip = new AdmZip(zipPath);
+    }
+
+    let count = 0;
+    this.db.transaction(() => {
+      for (const record of filteredRecords) {
+        const examineeId = `pat-${Date.now()}-${count}`;
+        const screeningId = `scr-${Date.now()}-${count}`;
+
+        // Upsert examinee
+        this.db.prepare(`
+          INSERT INTO examinees (id, examinee_number, name, gender, birth_date, blood_pressure_systolic, blood_pressure_diastolic, has_diabetes, has_hypertension)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(examinee_number) DO UPDATE SET 
+            name=excluded.name,
+            gender=excluded.gender,
+            birth_date=excluded.birth_date,
+            blood_pressure_systolic=excluded.blood_pressure_systolic,
+            blood_pressure_diastolic=excluded.blood_pressure_diastolic,
+            has_diabetes=excluded.has_diabetes,
+            has_hypertension=excluded.has_hypertension
+        `).run(
+          examineeId,
+          record.examinee_number,
+          record.name,
+          record.gender,
+          record.birth_date,
+          record.blood_pressure_systolic || null,
+          record.blood_pressure_diastolic || null,
+          record.has_diabetes === "1" ? 1 : 0,
+          record.has_hypertension === "1" ? 1 : 0
+        );
+
+        const actualExaminee = this.db
+          .prepare("SELECT id FROM examinees WHERE examinee_number = ?")
+          .get(record.examinee_number) as { id: string };
+
+        this.db.prepare(`
+          INSERT INTO screenings (id, examinee_id, organization_id, screening_date, urgency_flag, chief_complaint)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `).run(
+          screeningId,
+          actualExaminee.id,
+          record.organization_id || "org-1",
+          record.screening_date,
+          record.urgency_flag === "1" ? 1 : 0,
+          record.chief_complaint
+        );
+
+        // Handle images from ZIP if provided
+        if (zip) {
+          const sides = ["R", "L"];
+          for (const side of sides) {
+            const fileName = `${record.examinee_number}_${side}.jpg`;
+            const entry = zip.getEntry(fileName);
+            if (entry) {
+              // In a real app, we would save the file to storage (S3, etc.)
+              // Here we'll just use a mock URL but acknowledge the file exists
+              this.db.prepare(
+                "INSERT INTO screening_images (id, screening_id, eye_side, url) VALUES (?, ?, ?, ?)"
+              ).run(
+                `img-${Date.now()}-${count}-${side}`,
+                screeningId,
+                side === "R" ? "right" : "left",
+                `https://picsum.photos/seed/${record.examinee_number}_${side}/800/800`
+              );
+            }
+          }
+        }
+        count++;
+      }
+    })();
+
+    // Cleanup uploaded files
+    fs.unlinkSync(csvPath);
+    if (zipPath) fs.unlinkSync(zipPath);
+
+    return count;
   }
 
   getAllScreenings() {
@@ -103,8 +202,8 @@ export class ScreeningService {
       
       // Log audit
       this.db.prepare(
-        "INSERT INTO audit_logs (id, user_id, action, table_name, record_id, details) VALUES (?, ?, ?, ?, ?, ?)"
-      ).run(`log-${Date.now()}`, userId, "UPDATE", "screenings", id, JSON.stringify(data));
+        "INSERT INTO audit_logs (id, table_name, record_id, action, changed_by, changes) VALUES (?, ?, ?, ?, ?, ?)"
+      ).run(`log-${Date.now()}`, "screenings", id, "UPDATE", userId, JSON.stringify(data));
       
       return info;
     })();
