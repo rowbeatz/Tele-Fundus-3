@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Activity, Clock, CheckCircle2, FileCheck, Eye, AlertCircle, Search, Filter, ArrowUpDown } from "lucide-react";
+import { Activity, Clock, CheckCircle2, FileCheck, Eye, AlertCircle, Search, ArrowUpDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { clsx } from "clsx";
 import { useTranslation } from "../lib/i18n";
@@ -14,33 +14,44 @@ export default function Reviews() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("urgency");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/screenings")
-      .then((res) => res.json())
-      .then((data) => {
-        // Filter only reading_completed for the QC review queue
-        const queue = data.filter(
-          (s: ScreeningData) => s.status === "reading_completed",
-        );
-        setScreenings(queue);
-        setLoading(false);
-      });
-  }, []);
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      const params = new URLSearchParams({ status: "reading_completed", limit: "200" });
+      const normalizedSearch = searchTerm.trim();
+      if (normalizedSearch) {
+        params.set("search", normalizedSearch);
+      }
+
+      setLoading(true);
+      fetch(`/api/screenings?${params.toString()}`, { signal: controller.signal })
+        .then(async (res) => {
+          if (!res.ok) {
+            throw new Error(`Failed to load cases (${res.status})`);
+          }
+          return res.json();
+        })
+        .then((data) => {
+          setScreenings(data);
+          setError(null);
+        })
+        .catch((err: unknown) => {
+          if (err instanceof Error && err.name === "AbortError") return;
+          setError(err instanceof Error ? err.message : "Unknown error");
+        })
+        .finally(() => setLoading(false));
+    }, 250);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [searchTerm]);
 
   const filteredAndSortedScreenings = useMemo(() => {
     let result = [...screenings];
-
-    // Search
-    if (searchTerm) {
-      const lowerTerm = searchTerm.toLowerCase();
-      result = result.filter(
-        (s) =>
-          s.patient_name.toLowerCase().includes(lowerTerm) ||
-          s.examinee_number.toLowerCase().includes(lowerTerm) ||
-          s.organization_name.toLowerCase().includes(lowerTerm)
-      );
-    }
 
     // Sort
     result.sort((a, b) => {
@@ -58,7 +69,7 @@ export default function Reviews() {
     });
 
     return result;
-  }, [screenings, searchTerm, sortBy]);
+  }, [screenings, sortBy]);
 
   return (
     <motion.div
@@ -112,6 +123,11 @@ export default function Reviews() {
                 Loading Reviews...
               </span>
             </div>
+          </div>
+        ) : error ? (
+          <div className="p-8 text-center text-medical-error bg-medical-error/[0.04] rounded-3xl border border-medical-error/30">
+            <p className="font-semibold">Failed to load reviews queue.</p>
+            <p className="text-sm mt-1">{error}</p>
           </div>
         ) : filteredAndSortedScreenings.length === 0 ? (
           <motion.div 

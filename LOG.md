@@ -39,3 +39,11 @@
   - 各コンポーネント（`Viewer.tsx`, `Dashboard.tsx`, `Queue.tsx`, `Reviews.tsx`, `Registration.tsx`, `Billing.tsx`）で共通型を使用するようにリファクタリング
 - 不足していた6テーブル分のスキーマ追加 (`/server.ts`) と型定義の追加 (`/src/types.ts`)
   - `client_orders`, `case_discussions`, `discussion_comments`, `billing_plans`, `payout_tiers`, `roles`
+
+## Phase 6: API整合性・高速化（今回）
+- `GET /api/screenings` にクエリフィルタを追加 (`status`, `search`, `limit`, `offset`)。
+  - Zodで入力検証し、不正パラメータを400で返すよう統一。
+- 一覧取得クエリを動的SQLへ更新し、DB側でステータス/検索フィルタを実行するように改善。
+  - フロント側の全件取得→クライアント絞り込みを減らし、転送量を削減。
+- `Queue` / `Reviews` ページをAPIフィルタ利用へ変更し、フロント・バックエンドの責務分離を改善。
+- 検索入力時のデバウンス + AbortController で、一覧画面の過剰リクエストを抑制。
