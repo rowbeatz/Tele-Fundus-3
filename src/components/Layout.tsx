@@ -38,7 +38,7 @@ export default function Layout() {
   return (
     <div className="flex h-screen bg-medical-bg text-medical-text font-sans selection:bg-medical-primary/20">
       {/* Sidebar - Modern Medical Feel */}
-      <aside className="w-72 bg-medical-surface flex flex-col border-r border-medical-border z-10">
+      <aside className="w-72 bg-medical-surface dark:bg-black flex flex-col border-r border-medical-border z-10">
         <div className="p-8 flex items-center gap-4">
           <div className="bg-medical-primary p-2.5 rounded-2xl text-white shadow-lg shadow-medical-primary/20">
             <Eye size={28} strokeWidth={2.5} />
@@ -68,12 +68,12 @@ export default function Layout() {
                   "flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all duration-300 group",
                   isActive
                     ? "bg-medical-primary/10 text-medical-primary shadow-sm"
-                    : "text-medical-text-muted hover:bg-slate-50 hover:text-medical-text",
+                    : "text-medical-text-muted hover:bg-medical-bg dark:hover:bg-neutral-900 hover:text-medical-text",
                 )}
               >
                 <div className={clsx(
                   "p-2 rounded-xl transition-colors",
-                  isActive ? "bg-medical-primary text-white" : "bg-slate-100 text-medical-text-muted group-hover:bg-slate-200"
+                  isActive ? "bg-medical-primary text-white" : "bg-medical-bg dark:bg-neutral-900 text-medical-text-muted group-hover:bg-medical-primary/10 group-hover:text-medical-primary"
                 )}>
                   <Icon size={18} strokeWidth={2.5} />
                 </div>

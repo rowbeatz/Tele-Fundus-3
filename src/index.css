@@ -23,15 +23,15 @@
   :root.dark {
     --color-medical-primary: #3B82F6;
     --color-medical-secondary: #10B981;
-    --color-medical-bg: #0F1117;
-    --color-medical-surface: #171B22;
-    --color-medical-border: #2A3440;
-    --color-medical-text: #E5E7EB;
+    --color-medical-bg: #050505;
+    --color-medical-surface: #0A0A0A;
+    --color-medical-border: #1A1A1A;
+    --color-medical-text: #F9FAFB;
     --color-medical-text-muted: #9CA3AF;
     --color-medical-success: #10B981;
     --color-medical-warning: #F59E0B;
     --color-medical-error: #EF4444;
-    --color-medical-viewer-bg: #0F1117;
+    --color-medical-viewer-bg: #050505;
   }
 }
 
@@ -51,6 +51,11 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass-card {
+  background: rgba(10, 10, 10, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .medical-shadow {
